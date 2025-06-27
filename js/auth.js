@@ -87,4 +87,4 @@ document.addEventListener('DOMContentLoaded', function () {
   if (localStorage.getItem('user') && window.location.pathname.endsWith('index.html')) {
     window.location.href = 'chat.html';
   }
-});
+}); 

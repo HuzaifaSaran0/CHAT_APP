@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -79,21 +80,22 @@ def logout_view(request):
 def dashboard(request):
     user = request.user
     conversation, _ = Conversation.objects.get_or_create(user=user)
-    messages_list = Message.objects.filter(conversation=conversation)
+    messages_list = Message.objects.filter(conversation=conversation).order_by('-timestamp')[::-1]  # Get messages in chronological order
 
-    reply = None
-
-    if request.method == "POST":
-        user_input = request.POST.get("message", "")
+    if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
+        user_input  = request.POST.get("message", "")
 
         if user_input:
-            # Save user message
             Message.objects.create(conversation=conversation, sender='user', content=user_input)
 
             try:
-                # Prepare chat history for OpenAI
-                chat_history = [{"role": msg.sender, "content": msg.content} for msg in messages_list]
-                chat_history.append({"role": "user", "content": user_input})
+                # chat_history = [{"role": msg.sender, "content": msg.content} for msg in messages_list]
+                # chat_history.append({"role": "user", "content": user_input})
+                chat_history = [
+                        {"role": "system", "content": "You are a helpful AI assistant."},
+                        {"role": "user", "content": user_input}
+                ]
+
 
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
@@ -102,14 +104,12 @@ def dashboard(request):
                 )
 
                 reply = response.choices[0].message.content
-
-                # Save bot reply
                 Message.objects.create(conversation=conversation, sender='assistant', content=reply)
 
             except Exception as e:
                 reply = f"Error: {str(e)}"
 
-    messages_list = Message.objects.filter(conversation=conversation)  # reload all including new ones
+            return JsonResponse({"reply": reply})
 
     return render(request, 'accounts/dashboard.html', {
         "messages": messages_list
