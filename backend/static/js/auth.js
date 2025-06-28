@@ -1,5 +1,3 @@
-console.log("🔥 Auth JS loaded: v3");
-
 // DOM Elements
 const signupFields = document.getElementById('signup-fields');
 const formTitle = document.querySelector('.card-title');

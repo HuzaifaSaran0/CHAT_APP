@@ -19,6 +19,8 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def login_page(request):
+    if request.user.is_authenticated:
+        return redirect('/accounts/dashboard/')
     return render(request, 'accounts/login.html')
 
 def signup_page(request):

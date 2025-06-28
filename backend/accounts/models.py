@@ -3,13 +3,18 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import BaseUserManager
 
 
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, name, password=None, age=None, **extra_fields):
         if not email:
             raise ValueError('The Email must be set')
         email = self.normalize_email(email)
         user = self.model(email=email, name=name, age=age, **extra_fields)
-        user.set_password(password)
+        # user.set_password(password)
+        if password:  # 🔐 Only set password if provided
+            user.set_password(password)
+        else:
+            user.set_unusable_password() 
         user.save()
         return user
 
