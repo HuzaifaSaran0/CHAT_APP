@@ -84,6 +84,7 @@ window.addEventListener('DOMContentLoaded', function () {
         .then(res => res.json())
         .then(data => {
           if (data.success) {
+            localStorage.setItem('user', JSON.stringify({ email }));
             window.location.href = '/accounts/dashboard/';
           } else {
             alert(data.error || 'Login failed');
@@ -106,6 +107,7 @@ window.addEventListener('DOMContentLoaded', function () {
         .then(res => res.json())
         .then(data => {
           if (data.success) {
+            localStorage.setItem('user', JSON.stringify({ email }));
             window.location.href = '/accounts/dashboard/';
           } else {
             alert(data.error || 'Signup failed');

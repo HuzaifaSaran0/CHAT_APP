@@ -61,68 +61,6 @@ def api_signup(request):
 def index(request):
     return render(request, 'accounts/index.html')
 
-# @login_required
-# def dashboard(request):
-#     return render(request, 'accounts/dashboard.html')
-
-# def login_view(request):
-#     if request.user.is_authenticated:
-#         return redirect('dashboard')
-    
-#     if request.method == 'POST':
-#         email = request.POST['email']
-#         password = request.POST['password']
-#         user = authenticate(request, email=email, password=password)
-        
-#         if user is not None:
-#             login(request, user)
-#             return redirect('dashboard')
-#         else:
-#             messages.error(request, 'Invalid email or password')
-    
-#     return render(request, 'accounts/login.html')
-
-# def signup_view(request):
-#     if request.user.is_authenticated:
-#         return redirect('dashboard')
-
-#     context = {}
-
-#     if request.method == 'POST':
-#         name = request.POST['name']
-#         age = request.POST.get('age')  # Optional field
-#         email = request.POST['email']
-#         password = request.POST['password']
-#         confirm_password = request.POST['confirm_password']
-
-#         # Pre-fill form data in context
-#         context['name'] = name
-#         context['age'] = age
-#         context['email'] = email
-
-#         # Check if passwords match
-#         if password != confirm_password:
-#             messages.error(request, 'Passwords do not match')
-#             return render(request, 'accounts/signup.html', context)
-
-#         if CustomUser.objects.filter(email=email).exists():
-#             messages.error(request, 'Email already registered')
-#             return render(request, 'accounts/signup.html', context)
-
-#         user = CustomUser.objects.create_user(
-#             email=email,
-#             name=name,
-#             age=age,
-#             password=password
-#         )
-#         backend = EmailBackend()
-#         user.backend = f"{backend.__module__}.{backend.__class__.__name__}"
-#         login(request, user)
-        
-#         return redirect('dashboard')
-
-#     return render(request, 'accounts/signup.html', context)
-
 
 def logout_view(request):
     logout(request)
@@ -131,55 +69,69 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    print("User authenticated:", request.user.is_authenticated)
     user = request.user
     conversation, _ = Conversation.objects.get_or_create(user=user)
-    messages_list = Message.objects.filter(conversation=conversation).order_by('-timestamp')[::-1]
+    messages_list = Message.objects.filter(conversation=conversation).order_by('timestamp')
 
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         user_input = request.POST.get("message", "")
 
         if user_input:
+            # Save user message
             Message.objects.create(conversation=conversation, sender='user', content=user_input)
 
             try:
-                chat_history = [
-                    {"role": "system", "content": "You are a helpful AI assistant."},
-                    {"role": "user", "content": user_input}
-                ]
+                # Get previous messages (excluding the one we just saved if DB is slow)
+                previous_messages = Message.objects.filter(conversation=conversation).order_by('-timestamp')[:5][::-1]
 
+                chat_history = [{"role": "system", "content": "You are a helpful AI assistant named Lya. Respond in English."}]
+
+                for msg in previous_messages:
+                    role = "user" if msg.sender == "user" else "assistant"
+                    chat_history.append({"role": role, "content": msg.content})
+
+                # ✅ Always append the current message at the end
+                chat_history.append({"role": "user", "content": user_input})
+
+                # Get AI response
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=chat_history,
-                    max_tokens=100
+                    max_tokens=500,
+                    temperature=0.7
                 )
 
                 reply = response.choices[0].message.content
+
+                # Save AI response
                 Message.objects.create(conversation=conversation, sender='assistant', content=reply)
 
-            except Exception as e:
-                reply = f"Error: {str(e)}"
+                return JsonResponse({"reply": reply})
 
-            return JsonResponse({"reply": reply})
+            except Exception as e:
+                return JsonResponse({"reply": f"Sorry, an error occurred: {str(e)}"})
+
 
     # Prepare messages JSON for JavaScript
     messages_data = [
         {
             "id": str(msg.id),
             "text": msg.content,
-            "sender": msg.sender,
+            "sender": "bot" if msg.sender == "assistant" else "user",
             "timestamp": msg.timestamp.strftime('%H:%M')
         }
         for msg in messages_list
     ]
+    
     user_data = {
-    "id": request.user.id,
-    "email": request.user.email,
-    "name": request.user.get_full_name() or request.user.username
-}
+        "id": request.user.id,
+        "email": request.user.email,
+        "name": request.user.get_full_name() or request.user.username
+    }
 
     return render(request, 'accounts/dashboard.html', {
         "messages_json": mark_safe(json.dumps(messages_data)),
-        "user_json": mark_safe(json.dumps(user_data))  # ✅ this is important
-
+        "user_json": mark_safe(json.dumps(user_data)),
+        "theme": "dark",
+        "csrf_token": request.META.get('CSRF_COOKIE', ''),
     })

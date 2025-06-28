@@ -10,7 +10,7 @@ urlpatterns = [
     path('login/', views.api_login, name='login'),
     path('signup/', views.api_signup, name='signup'),
     path('logout/', views.logout_view, name='logout'),
-    path('dashboard/', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard),
 ]
 
 if settings.DEBUG:

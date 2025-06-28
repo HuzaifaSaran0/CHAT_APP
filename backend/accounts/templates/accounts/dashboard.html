@@ -15,7 +15,7 @@
   <div class="chat-container">
     <!-- Header -->
     <div class="chat-header">
-      <button class="header-button back-button">
+      <button class="header-button back-button" disabled>
         <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -110,13 +110,13 @@
     window.initialMessages = {{ messages_json | safe }};
     window.loginUrl = "{% url 'login' %}";
     window.logoutUrl = "{% url 'logout' %}";
-    // window.user = {{ user_json | safe }};
+    window.user = {{ user_json | safe }};
     window.csrfToken = '{{ csrf_token }}';
     window.initialTheme = '{{ theme }}';
   </script>
 
   <script src="{% static 'js/theme.js' %}"></script>
-  <!-- <script src="{% static 'js/chat.js' %}"></script> -->
+  <script src="{% static 'js/chat.js' %}"></script>
 </body>
 
 </html>

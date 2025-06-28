@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
-  if (!localStorage.getItem('user')) {
+  if (!window.user || !window.user.email) {
     window.location.href = window.loginUrl;
     return;
   }
+
 
   const messagesContainer = document.getElementById('messages-container');
   const messageInput = document.getElementById('message-input');
@@ -98,43 +99,56 @@ document.addEventListener('DOMContentLoaded', function () {
     shouldAutoScroll = true;
     scrollToBottom();
 
-    setTimeout(() => {
-      isTyping = true;
-      statusElement.textContent = 'en train d\'écrire...';
-      renderMessages();
-      scrollToBottom();
+    // Show typing indicator
+    isTyping = true;
+    statusElement.textContent = 'en train d\'écrire...';
+    renderMessages();
+    scrollToBottom();
 
-      setTimeout(() => {
-        const responses = [
-          "C'est intéressant ! 😊",
-          "Raconte-moi en plus !",
-          "J'adore quand tu me parles de ça 💕",
-          "Tu es passionnant !",
-          "Continue, je t'écoute... 😘",
-          "Mmm, dis-moi tout... 🥰",
-          "Tu me fais rêver ! ✨",
-          "J'ai hâte d'en savoir plus 💋",
-        ];
+    // Send message to backend
+    fetch(window.location.href, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': window.csrfToken
+      },
+      body: `message=${encodeURIComponent(text)}`
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.reply) {
+          const responseTime = new Date().toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
 
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        const responseTime = new Date().toLocaleTimeString('fr-FR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-
+          messages.push({
+            id: (Date.now() + 1).toString(),
+            text: data.reply,
+            sender: "bot",
+            timestamp: responseTime,
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
         messages.push({
           id: (Date.now() + 1).toString(),
-          text: randomResponse,
+          text: "Désolé, une erreur s'est produite. Veuillez réessayer.",
           sender: "bot",
-          timestamp: responseTime,
+          timestamp: new Date().toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
         });
-
+      })
+      .finally(() => {
         isTyping = false;
         statusElement.textContent = 'en ligne';
         renderMessages();
         scrollToBottom();
-      }, 1500 + Math.random() * 2000);
-    }, 500);
+      });
   }
 
   function scrollToBottom() {
