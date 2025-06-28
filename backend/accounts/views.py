@@ -18,6 +18,12 @@ load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+def login_page(request):
+    return render(request, 'accounts/login.html')
+
+def signup_page(request):
+    return render(request, 'accounts/signup.html')
+
 @csrf_exempt
 def api_login(request):
     if request.method == 'POST':

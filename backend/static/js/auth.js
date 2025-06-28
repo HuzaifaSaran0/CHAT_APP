@@ -1,40 +1,61 @@
-console.log("🔥 Auth JS loaded: v2");
+console.log("🔥 Auth JS loaded: v3");
 
-const toggleAuthMode = document.getElementById('toggle-auth-mode');
+// DOM Elements
 const signupFields = document.getElementById('signup-fields');
 const formTitle = document.querySelector('.card-title');
 const cardDescription = document.querySelector('.card-description');
 const submitButton = document.getElementById('form-submit-button');
 const separatorText = document.getElementById('separator-text');
+const toggleAuthMode = document.getElementById('toggle-auth-mode');
 
 let isLogin = true;
 
+// Detect mode based on URL path
+const path = window.location.pathname;
+if (path.includes('signup-page')) {
+  isLogin = false;
+} else {
+  isLogin = true;
+}
+
+// Update form UI based on mode
 function updateFormMode() {
   if (isLogin) {
     formTitle.textContent = 'Bienvenue sur PauseCoquine';
     cardDescription.textContent = 'Connectez-vous à votre compte';
-    toggleAuthMode.textContent = 'Pas encore inscrit ? Créer un compte';
     submitButton.textContent = 'Se connecter';
     separatorText.textContent = 'ou se connecter manuellement';
     signupFields.style.display = 'none';
-    history.replaceState({}, '', '?mode=login');
+
+    if (toggleAuthMode) {
+      toggleAuthMode.textContent = 'Pas encore inscrit ? Créer un compte';
+    }
   } else {
     formTitle.textContent = 'Inscrivez-vous sur PauseCoquine';
     cardDescription.textContent = 'Créez votre compte pour commencer';
-    toggleAuthMode.textContent = 'Déjà inscrit ? Se connecter';
     submitButton.textContent = 'Créer mon compte';
     separatorText.textContent = "ou s'inscrire manuellement";
     signupFields.style.display = 'block';
-    history.replaceState({}, '', '?mode=signup');
+
+    if (toggleAuthMode) {
+      toggleAuthMode.textContent = 'Déjà inscrit ? Se connecter';
+    }
   }
 }
 
-toggleAuthMode.addEventListener('click', function (e) {
-  e.preventDefault();
-  isLogin = !isLogin;
-  updateFormMode();
-});
+// Redirect-based toggle behavior
+if (toggleAuthMode) {
+  toggleAuthMode.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (isLogin) {
+      window.location.href = '/accounts/signup-page/';
+    } else {
+      window.location.href = '/accounts/';
+    }
+  });
+}
 
+// CSRF helper
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -49,7 +70,9 @@ function getCookie(name) {
   return cookieValue;
 }
 
+// On page load
 window.addEventListener('DOMContentLoaded', function () {
+  // Fill age dropdown
   const ageSelect = document.getElementById('age');
   if (ageSelect) {
     ageSelect.innerHTML = '<option value="">Sélectionnez votre âge</option>';
@@ -60,10 +83,11 @@ window.addEventListener('DOMContentLoaded', function () {
       ageSelect.appendChild(option);
     }
   }
-  const params = new URLSearchParams(window.location.search);
-  isLogin = !(params.get('mode') === 'signup');
+
+  // Update form texts and fields
   updateFormMode();
 
+  // Handle form submit
   const form = document.getElementById('login-form');
   form.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -73,6 +97,7 @@ window.addEventListener('DOMContentLoaded', function () {
     const csrftoken = getCookie('csrftoken');
 
     if (isLogin) {
+      // LOGIN
       fetch('/accounts/login/', {
         method: 'POST',
         headers: {
@@ -91,10 +116,10 @@ window.addEventListener('DOMContentLoaded', function () {
           }
         });
     } else {
+      // SIGNUP
       const name = document.getElementById('firstName').value;
       const rawAge = document.getElementById('age').value;
       const age = rawAge === "" ? null : parseInt(rawAge);
-
 
       fetch('/accounts/signup/', {
         method: 'POST',

@@ -4,9 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    # path('login/', views.login_view, name='login'),
-    # path('signup/', views.signup_view, name='signup'),
-    path('', views.index, name='index'),
+    # path('', views.index, name='index'),
+    path('', views.login_page, name='login_page'),
+    path('signup-page/', views.signup_page, name='signup_page'),
     path('login/', views.api_login, name='login'),
     path('signup/', views.api_signup, name='signup'),
     path('logout/', views.logout_view, name='logout'),
