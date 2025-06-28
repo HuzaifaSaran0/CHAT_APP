@@ -1,25 +1,20 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
-from django.contrib import messages
-from django.contrib.auth.models import User
-from .models import CustomUser
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Conversation, Message
-import os
-from openai import OpenAI
-from dotenv import load_dotenv
-from django.contrib.auth import login
-from .backends import EmailBackend
-import json
-from django.views.decorators.csrf import csrf_exempt
-# Load environment variables from .env file
 from django.utils.safestring import mark_safe
+from django.views.decorators.csrf import csrf_exempt
 
+from .models import CustomUser, Conversation, Message
+from .backends import EmailBackend
 
+import os
+import json
+from dotenv import load_dotenv
+from openai import OpenAI
 
-load_dotenv()  # This loads variables from .env
-
+# Load environment variables from .env file
+load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -57,15 +52,12 @@ def api_signup(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
-
 def index(request):
     return render(request, 'accounts/index.html')
 
-
 def logout_view(request):
     logout(request)
-    return redirect('/accounts/')  # Redirect to the index page after logout
-
+    return redirect('/accounts/')
 
 @login_required
 def dashboard(request):
@@ -77,23 +69,18 @@ def dashboard(request):
         user_input = request.POST.get("message", "")
 
         if user_input:
-            # Save user message
             Message.objects.create(conversation=conversation, sender='user', content=user_input)
 
             try:
-                # Get previous messages (excluding the one we just saved if DB is slow)
                 previous_messages = Message.objects.filter(conversation=conversation).order_by('-timestamp')[:5][::-1]
 
                 chat_history = [{"role": "system", "content": "You are a helpful AI assistant named Lya. Respond in English."}]
-
                 for msg in previous_messages:
                     role = "user" if msg.sender == "user" else "assistant"
                     chat_history.append({"role": role, "content": msg.content})
 
-                # ✅ Always append the current message at the end
                 chat_history.append({"role": "user", "content": user_input})
 
-                # Get AI response
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=chat_history,
@@ -102,8 +89,6 @@ def dashboard(request):
                 )
 
                 reply = response.choices[0].message.content
-
-                # Save AI response
                 Message.objects.create(conversation=conversation, sender='assistant', content=reply)
 
                 return JsonResponse({"reply": reply})
@@ -111,8 +96,6 @@ def dashboard(request):
             except Exception as e:
                 return JsonResponse({"reply": f"Sorry, an error occurred: {str(e)}"})
 
-
-    # Prepare messages JSON for JavaScript
     messages_data = [
         {
             "id": str(msg.id),
@@ -135,3 +118,5 @@ def dashboard(request):
         "theme": "dark",
         "csrf_token": request.META.get('CSRF_COOKIE', ''),
     })
+def handle_404(request, exception):
+    return render(request, 'accounts/404.html', status=404)
