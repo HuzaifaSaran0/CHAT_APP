@@ -1,0 +1,10 @@
+# i want to add venv in gitignore
+# Python
+*.pyc
+__pycache__/
+# Virtual Environment
+
+venv/
+# i want to add .env in gitignore
+.env
+db.sqlite3
