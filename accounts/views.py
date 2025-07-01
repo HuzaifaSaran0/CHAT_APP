@@ -43,8 +43,8 @@ def api_login(request):
 
         user = authenticate(request, email=email, password=password)
         if user is not None:
-            if not user.is_email_verified and not user.is_superuser:
-                return JsonResponse({'success': False, 'error': 'Please verify your email before logging in.'})
+            # if not user.is_email_verified and not user.is_superuser:
+                # return JsonResponse({'success': False, 'error': 'Please verify your email before logging in.'})
             login(request, user)
             return JsonResponse({'success': True})
         else:
@@ -65,17 +65,20 @@ def api_signup(request):
         
         user = CustomUser.objects.create_user(email=email, name=name, password=password, age=age)
         # Generate verification link
-        verification_link = generate_verification_link(user, request)
+        # verification_link = generate_verification_link(user, request)
         
-        send_mail(
-            subject='Verify your email',
-            message=f'Click the link to verify your email: {verification_link}',
-            from_email=os.getenv("EMAIL_HOST_USER"),
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
+        # send_mail(
+        #     subject='Verify your email',
+        #     message=f'Click the link to verify your email: {verification_link}',
+        #     from_email=os.getenv("EMAIL_HOST_USER"),
+        #     recipient_list=[user.email],
+        #     fail_silently=False,
+        # )
         user.backend = 'accounts.backends.EmailBackend'
-        request.session['just_signed_up_email'] = email
+        login(request, user)  # log user in immediately after signup
+        # return JsonResponse({'success': True})
+
+        # request.session['just_signed_up_email'] = email
 
         # login(request, user)
         # return render(request, 'accounts/email_verification_sent.html', {'email': user.email})
@@ -90,32 +93,32 @@ def logout_view(request):
     logout(request)
     return redirect('/accounts/')
 
-def email_verification_sent(request):
-    email = request.session.get('just_signed_up_email')
-    if not email:
-        return HttpResponseForbidden("<h1>403 Forbidden</h1><p>You are not allowed to access this page directly.</p>")
+# def email_verification_sent(request):
+#     email = request.session.get('just_signed_up_email')
+#     if not email:
+#         return HttpResponseForbidden("<h1>403 Forbidden</h1><p>You are not allowed to access this page directly.</p>")
 
-    # Clean up session
-    del request.session['just_signed_up_email']
-    return render(request, 'accounts/email_verification_sent.html', {
-        'email': email,
-    })
+#     # Clean up session
+#     del request.session['just_signed_up_email']
+#     return render(request, 'accounts/email_verification_sent.html', {
+#         'email': email,
+#     })
 
-def verify_email(request, uidb64, token):
-    try:
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = get_user_model().objects.get(pk=uid)
-    except Exception:
-        user = None
+# def verify_email(request, uidb64, token):
+#     try:
+#         uid = urlsafe_base64_decode(uidb64).decode()
+#         user = get_user_model().objects.get(pk=uid)
+#     except Exception:
+#         user = None
 
-    if user and default_token_generator.check_token(user, token):
-        user.is_email_verified = True
-        user.save()
-        # return redirect('/accounts/dashboard/')
-        return render(request, 'accounts/email_verified.html')
-        # return JsonResponse({'message': 'Email verified successfully!'})
-    else:
-        return JsonResponse({'error': 'Invalid or expired link'}, status=400)
+#     if user and default_token_generator.check_token(user, token):
+#         user.is_email_verified = True
+#         user.save()
+#         # return redirect('/accounts/dashboard/')
+#         return render(request, 'accounts/email_verified.html')
+#         # return JsonResponse({'message': 'Email verified successfully!'})
+#     else:
+#         return JsonResponse({'error': 'Invalid or expired link'}, status=400)
 
 @login_required
 def dashboard(request):

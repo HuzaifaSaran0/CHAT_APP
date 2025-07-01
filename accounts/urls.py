@@ -10,8 +10,8 @@ urlpatterns = [
     path('login/', views.api_login, name='login'),
     path('signup/', views.api_signup, name='signup'),
     path('logout/', views.logout_view, name='logout'),
-    path('verify/<uidb64>/<token>/', views.verify_email, name='verify_email'),
-    path('email-verification-sent/', views.email_verification_sent, name='email_verification_sent'),
+    # path('verify/<uidb64>/<token>/', views.verify_email, name='verify_email'),
+    # path('email-verification-sent/', views.email_verification_sent, name='email_verification_sent'),
     path('dashboard/', views.dashboard),
     # path('oauth/', include('social_django.urls', namespace='social')),  # Add this
 

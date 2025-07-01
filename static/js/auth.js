@@ -141,7 +141,7 @@ window.addEventListener('DOMContentLoaded', function () {
         .then(data => {
           if (data.success) {
             localStorage.setItem('user', JSON.stringify({ email }));
-            window.location.href = '/accounts/email-verification-sent/';
+            window.location.href = '/accounts/dashboard/';
           } else {
             alert(data.error || 'Signup failed');
             spinner.style.display = 'none';
