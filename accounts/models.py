@@ -40,6 +40,8 @@ class CustomUser(AbstractUser):
         blank=True,
         choices=[(i, str(i)) for i in range(18, 81)]  # Choices from 18 to 80
     )
+    is_email_verified = models.BooleanField(default=False)
+
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']

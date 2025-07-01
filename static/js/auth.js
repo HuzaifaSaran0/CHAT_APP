@@ -89,12 +89,17 @@ window.addEventListener('DOMContentLoaded', function () {
 
   // Handle form submit
   const form = document.getElementById('login-form');
+  const spinner = document.getElementById('loading-spinner');
   form.addEventListener('submit', function (e) {
     e.preventDefault();
 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const csrftoken = getCookie('csrftoken');
+
+    spinner.style.display = 'block';
+    submitButton.disabled = true;
+    submitButton.textContent = 'Chargement...';
 
     if (isLogin) {
       // LOGIN
@@ -113,6 +118,9 @@ window.addEventListener('DOMContentLoaded', function () {
             window.location.href = '/accounts/dashboard/';
           } else {
             alert(data.error || 'Login failed');
+            spinner.style.display = 'none';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Se connecter';
           }
         });
     } else {
@@ -133,9 +141,12 @@ window.addEventListener('DOMContentLoaded', function () {
         .then(data => {
           if (data.success) {
             localStorage.setItem('user', JSON.stringify({ email }));
-            window.location.href = '/accounts/dashboard/';
+            window.location.href = '/accounts/email-verification-sent/';
           } else {
             alert(data.error || 'Signup failed');
+            spinner.style.display = 'none';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Créer mon compte';
           }
         });
     }

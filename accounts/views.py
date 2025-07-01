@@ -8,6 +8,12 @@ from django.views.decorators.csrf import csrf_protect
 from .models import CustomUser, Conversation, Message
 from .backends import EmailBackend
 
+from django.core.mail import send_mail
+from .utils import generate_verification_link
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth import get_user_model
+
 import os
 import json
 from dotenv import load_dotenv
@@ -37,6 +43,8 @@ def api_login(request):
 
         user = authenticate(request, email=email, password=password)
         if user is not None:
+            if not user.is_email_verified and not user.is_superuser:
+                return JsonResponse({'success': False, 'error': 'Please verify your email before logging in.'})
             login(request, user)
             return JsonResponse({'success': True})
         else:
@@ -56,8 +64,21 @@ def api_signup(request):
             return JsonResponse({'success': False, 'error': 'Email already registered'})
         
         user = CustomUser.objects.create_user(email=email, name=name, password=password, age=age)
+        # Generate verification link
+        verification_link = generate_verification_link(user, request)
+        
+        send_mail(
+            subject='Verify your email',
+            message=f'Click the link to verify your email: {verification_link}',
+            from_email=os.getenv("EMAIL_HOST_USER"),
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
         user.backend = 'accounts.backends.EmailBackend'
-        login(request, user)
+        request.session['just_signed_up_email'] = email
+
+        # login(request, user)
+        # return render(request, 'accounts/email_verification_sent.html', {'email': user.email})
         return JsonResponse({'success': True})
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -69,6 +90,33 @@ def logout_view(request):
     logout(request)
     return redirect('/accounts/')
 
+def email_verification_sent(request):
+    email = request.session.get('just_signed_up_email')
+    if not email:
+        return HttpResponseForbidden("<h1>403 Forbidden</h1><p>You are not allowed to access this page directly.</p>")
+
+    # Clean up session
+    del request.session['just_signed_up_email']
+    return render(request, 'accounts/email_verification_sent.html', {
+        'email': email,
+    })
+
+def verify_email(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = get_user_model().objects.get(pk=uid)
+    except Exception:
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        user.is_email_verified = True
+        user.save()
+        # return redirect('/accounts/dashboard/')
+        return render(request, 'accounts/email_verified.html')
+        # return JsonResponse({'message': 'Email verified successfully!'})
+    else:
+        return JsonResponse({'error': 'Invalid or expired link'}, status=400)
+
 @login_required
 def dashboard(request):
     user = request.user
@@ -77,6 +125,19 @@ def dashboard(request):
 
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         user_input = request.POST.get("message", "")
+
+        if user_input:
+            Message.objects.create(conversation=conversation, sender='user', content=user_input)
+            if user_input == "image":
+                fixed_image_url = "https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png"  # <-- Replace with your image URL
+            elif user_input == "audio":
+                fixed_image_url = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+            else:
+                fixed_image_url = "https://upload.wikimedia.org/wikipedia/commons/3/3f/HST-SM4.jpeg"
+
+
+            Message.objects.create(conversation=conversation, sender='assistant', content=fixed_image_url)
+            return JsonResponse({"reply": fixed_image_url})
 
         if user_input:
             Message.objects.create(conversation=conversation, sender='user', content=user_input)

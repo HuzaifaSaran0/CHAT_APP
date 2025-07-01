@@ -369,6 +369,27 @@ body {
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* FORM Submit button loading icon start
+*/
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid hsl(336, 82%, 56%);
+  border-top: 3px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 1rem auto 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* FORM Submit button loading icon end
+*/
+
 .error-message {
   margin-top: 1rem;
   padding: 0.75rem;
@@ -840,4 +861,292 @@ body {
 .dark .age-select:focus {
   border-color: hsl(330, 100%, 71%);
   box-shadow: 0 0 0 2px hsl(330, 100%, 71% / 0.2);
+}
+
+/*  */
+.chat-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 5px;
+  object-fit: contain;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: block;
+}
+
+/* Hide default controls but keep functionality */
+/* Audio player container */
+/* Mobile responsiveness */
+/* Base Styles */
+@media (max-width: 600px) {
+  .audio-player {
+    padding: 12px;
+    max-width: 100%;
+  }
+
+  .player-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .play-btn {
+    width: 36px;
+    height: 36px;
+    margin: 0 auto;
+  }
+
+  .progress-container {
+    width: 100%;
+  }
+
+  .player-controls {
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .volume-control {
+    flex-grow: 1;
+  }
+
+  .volume-slider {
+    width: 100%;
+    max-width: 100px;
+  }
+
+  .speed-control {
+    position: static;
+  }
+
+  .speed-options {
+    bottom: auto;
+    top: 100%;
+    left: 0;
+    right: auto;
+  }
+}
+
+.audio-player {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  margin: 12px 0;
+  transition: all 0.3s ease;
+}
+
+.dark .audio-player {
+  background: hsl(240, 5.9%, 20%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Player container */
+.player-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Play button */
+.play-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #4a6bff;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.play-btn:hover {
+  background: #3a5bef;
+  transform: scale(1.05);
+}
+
+.play-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Progress container */
+.progress-container {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .progress-bar {
+  background: hsl(240, 5.9%, 30%);
+}
+
+.progress {
+  height: 100%;
+  background: #4a6bff;
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* Time display */
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+}
+
+.dark .time-display {
+  color: #aaa;
+}
+
+/* Controls container */
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Volume control */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.volume-btn {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  padding: 4px;
+}
+
+.dark .volume-btn {
+  color: #aaa;
+}
+
+.volume-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.volume-slider {
+  width: 80px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #ddd;
+  border-radius: 2px;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.dark .volume-slider {
+  background: #555;
+}
+
+.volume-slider:hover {
+  opacity: 1;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #4a6bff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Speed control */
+.speed-control {
+  position: relative;
+}
+
+.speed-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark .speed-btn {
+  border-color: #555;
+  color: #eee;
+}
+
+.speed-btn:hover {
+  background: #f0f0f0;
+}
+
+.dark .speed-btn:hover {
+  background: hsl(240, 5.9%, 30%);
+}
+
+.speed-options {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+  display: none;
+  z-index: 10;
+}
+
+.dark .speed-options {
+  background: hsl(240, 5.9%, 15%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.speed-control:hover .speed-options {
+  display: block;
+}
+
+.speed-options button {
+  display: block;
+  width: 100%;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  color: #333;
+}
+
+.dark .speed-options button {
+  color: #eee;
+}
+
+.speed-options button:hover {
+  background: #f0f0f0;
+}
+
+.dark .speed-options button:hover {
+  background: hsl(240, 5.9%, 25%);
 }
